@@ -1,8 +1,8 @@
-# ChatGPT-Style AI Chatbot Web Application (Groq LPU Powered)
+# ChatGPT Clone Web Application (Groq LPU Powered)
 
-A production-quality, responsive ChatGPT-style AI chatbot web application built with **React (Vite)** and styled with a custom vanilla CSS design system. Powered by **Groq LPU Inference Engine** (featuring Llama 3.3 70B, Llama 3.1 8B, Mixtral, and Llama 3.2 Vision) for ultra-fast response streaming (300-800 tokens/sec), voice input, text-to-speech, vision image support, and full conversation persistence.
+A production-quality, responsive ChatGPT Clone web application built with **React (Vite)** and styled with a custom vanilla CSS design system. Powered by **Groq LPU Inference Engine** (featuring Qwen, Groq Compound, LLaMA, Mixtral) for ultra-fast response streaming (300-800 tokens/sec), voice input (Web Speech & Whisper), text-to-speech, vision image support, and full conversation persistence.
 
-![ChatGPT AI Assistant](public/favicon.svg)
+![ChatGPT Clone](public/favicon.svg)
 
 ---
 
@@ -41,7 +41,7 @@ Groq provides completely free access to high-speed Llama 3 models without requir
 1. **Visit Groq Console**: Go to [https://console.groq.com](https://console.groq.com).
 2. **Sign Up / Log In**: Sign in with your Google or GitHub account.
 3. **Navigate to API Keys**: Click on **API Keys** in the left sidebar menu (or visit [https://console.groq.com/keys](https://console.groq.com/keys)).
-4. **Create Key**: Click the **"Create API Key"** button. Give it any name (e.g. `chatbot`) and click **Submit**.
+4. **Create Key**: Click the **"Create API Key"** button. Give it any name (e.g. `chatgpt-clone`) and click **Submit**.
 5. **Copy Your Key**: Copy the key starting with `gsk_...` (it will only be shown once).
 6. **Use in App**:
    - **Option A (Quickest)**: Click the **Settings (Gear icon)** in the top-right of the web app, paste your key into the **Groq API Key** input, and click **Save Preferences**.
@@ -70,7 +70,8 @@ Groq provides completely free access to high-speed Llama 3 models without requir
 ### 2. Installation
 ```bash
 # Clone or navigate to the project directory
-cd /path/to/chatbot
+git clone https://github.com/kushagra45-gif/chatgpt-clone.git
+cd chatgpt-clone
 
 # Install dependencies
 npm install
@@ -84,7 +85,7 @@ cp .env.example .env
 Open `.env` and insert your Groq API key:
 ```env
 VITE_API_KEY=gsk_your_key_here
-VITE_GROQ_MODEL=llama-3.3-70b-versatile
+VITE_GROQ_MODEL=qwen/qwen3.8-27b
 ```
 
 *(Note: You can also enter or switch your API key at runtime directly in the app's **Settings Modal**).*
@@ -106,7 +107,7 @@ npm run preview
 ## 📁 Project Structure
 
 ```
-chatbot/
+chatgpt-clone/
 ├── .env.example             # Example environment variables
 ├── index.html               # Main HTML entry with SEO metadata and Google Fonts
 ├── package.json             # Scripts and dependencies

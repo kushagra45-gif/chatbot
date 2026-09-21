@@ -36,7 +36,7 @@ export function WelcomeScreen({ onSelectSuggestion }) {
         </div>
         <h1 className="welcome-title">What can I help with today?</h1>
         <p className="welcome-subtitle">
-          Ask questions, analyze documents, write code, or explore ideas with Groq AI.
+          Ask questions, analyze documents, write code, or explore ideas with ChatGPT Clone.
         </p>
       </div>
 

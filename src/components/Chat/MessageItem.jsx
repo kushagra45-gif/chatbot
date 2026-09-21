@@ -126,7 +126,7 @@ export function MessageItem({
                     remarkPlugins={[remarkGfm]}
                     components={{
                       code: CodeBlock,
-                      a: ({ node, ...props }) => (
+                      a: ({ _node, ...props }) => (
                         <a {...props} target="_blank" rel="noopener noreferrer" />
                       ),
                     }}

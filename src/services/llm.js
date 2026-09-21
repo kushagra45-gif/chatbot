@@ -273,3 +273,60 @@ export async function streamChatCompletion({
     onChunk,
   });
 }
+
+/**
+ * Transcribe audio using Groq Whisper API (whisper-large-v3-turbo)
+ */
+export async function transcribeAudio({ audioBlob, apiKey, language }) {
+  const activeKey = getApiKey(apiKey);
+  if (!activeKey) {
+    throw new Error(
+      'Groq API Key is missing. Please set your key in Settings or .env to use Whisper transcription.'
+    );
+  }
+
+  const formData = new FormData();
+  // Groq requires a valid audio file name with proper extension
+  const mimeType = audioBlob.type || 'audio/webm';
+  let ext = 'webm';
+  if (mimeType.includes('wav')) ext = 'wav';
+  else if (mimeType.includes('mp4') || mimeType.includes('m4a')) ext = 'm4a';
+  else if (mimeType.includes('ogg')) ext = 'ogg';
+
+  formData.append('file', audioBlob, `recording.${ext}`);
+  formData.append('model', 'whisper-large-v3-turbo');
+  formData.append('response_format', 'json');
+  if (language) {
+    formData.append('language', language);
+  }
+
+  let response;
+  try {
+    response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${activeKey}`,
+      },
+      body: formData,
+    });
+  } catch (err) {
+    throw new Error(`Microphone audio upload failed: ${err.message}`);
+  }
+
+  if (!response.ok) {
+    let errorDetail = '';
+    try {
+      const errJson = await response.json();
+      errorDetail = errJson?.error?.message || '';
+    } catch {
+      errorDetail = response.statusText;
+    }
+    throw new Error(
+      `Audio transcription failed (${response.status}): ${errorDetail || 'Unknown error'}`
+    );
+  }
+
+  const data = await response.json();
+  return (data.text || '').trim();
+}
+

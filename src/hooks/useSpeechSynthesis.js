@@ -9,9 +9,10 @@ export function useSpeechSynthesis() {
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
   useEffect(() => {
+    const synth = synthRef.current;
     return () => {
-      if (synthRef.current) {
-        synthRef.current.cancel();
+      if (synth) {
+        synth.cancel();
       }
     };
   }, []);

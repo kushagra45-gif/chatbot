@@ -181,7 +181,7 @@ export function Sidebar({
               <Sparkles size={16} color="var(--accent-primary)" />
             </div>
             <div className="footer-text-group">
-              <span className="footer-user-name">ChatGPT Assistant</span>
+              <span className="footer-user-name">ChatGPT Clone</span>
               <span className="footer-user-sub">Groq Powered</span>
             </div>
           </div>

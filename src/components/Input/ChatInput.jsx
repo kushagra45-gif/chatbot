@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   ArrowUp,
   Square,
@@ -6,9 +6,11 @@ import {
   MicOff,
   Paperclip,
   X,
-  Image as ImageIcon,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { useChat } from '../../context/ChatContext';
 
 export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
   const [text, setText] = useState('');
@@ -16,6 +18,9 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
   const [imageName, setImageName] = useState('');
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const baseTextRef = useRef('');
+
+  const { settings } = useChat();
 
   // Auto-resize textarea based on content up to 200px
   useEffect(() => {
@@ -26,13 +31,40 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
     }
   }, [text]);
 
-  // Web Speech recognition setup
-  const { isListening, isSupported: isSpeechSupported, toggleListening } =
-    useSpeechRecognition({
-      onResult: (spokenText) => {
-        setText((prev) => (prev ? `${prev} ${spokenText}` : spokenText));
-      },
-    });
+  // Speech recognition callback
+  const handleSpeechResult = useCallback((spokenText, isFinal) => {
+    const base = baseTextRef.current;
+    const cleanSpoken = spokenText.trim();
+    if (!cleanSpoken) return;
+
+    const newText = base ? `${base} ${cleanSpoken}` : cleanSpoken;
+    setText(newText);
+
+    if (isFinal) {
+      baseTextRef.current = newText;
+    }
+  }, []);
+
+  // Web Speech recognition & Whisper fallback setup
+  const {
+    isListening,
+    isTranscribing,
+    isSupported: isSpeechSupported,
+    recordingSeconds,
+    errorMessage,
+    clearError,
+    toggleListening,
+  } = useSpeechRecognition({
+    onResult: handleSpeechResult,
+    apiKey: settings?.apiKey,
+  });
+
+  const handleMicClick = () => {
+    if (!isListening && !isTranscribing) {
+      baseTextRef.current = text.trim();
+    }
+    toggleListening();
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -77,6 +109,7 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
 
     onSendMessage({ text, image: selectedImage });
     setText('');
+    baseTextRef.current = '';
     setSelectedImage(null);
     setImageName('');
 
@@ -86,6 +119,11 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
   };
 
   const canSubmit = (text.trim().length > 0 || selectedImage !== null) && !isGenerating;
+
+  // Format recording timer: mm:ss
+  const formattedRecordingTime = `${String(
+    Math.floor(recordingSeconds / 60)
+  ).padStart(2, '0')}:${String(recordingSeconds % 60).padStart(2, '0')}`;
 
   return (
     <div className="chat-input-wrapper">
@@ -109,6 +147,46 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
           </div>
         )}
 
+        {/* Voice recording live status */}
+        {isListening && (
+          <div className="voice-status-bar">
+            <div className="voice-status-left">
+              <span className="recording-dot" />
+              <span className="recording-text">Listening...</span>
+              <span className="recording-time">{formattedRecordingTime}</span>
+            </div>
+            <span className="voice-stop-hint">Click mic or Send when done</span>
+          </div>
+        )}
+
+        {/* Voice transcribing status (Whisper mode) */}
+        {isTranscribing && (
+          <div className="voice-status-bar">
+            <div className="voice-status-left">
+              <div className="transcribing-spinner" />
+              <span className="recording-text">Transcribing audio with Groq Whisper...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Voice error toast */}
+        {errorMessage && (
+          <div className="voice-error-toast">
+            <div className="voice-status-left">
+              <AlertCircle size={15} />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              className="voice-error-close"
+              onClick={clearError}
+              aria-label="Dismiss message"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        )}
+
         <div className="chat-input-row">
           {/* File attachment hidden input & button */}
           <input
@@ -124,7 +202,7 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
             onClick={() => fileInputRef.current?.click()}
             title="Attach image for vision model"
             aria-label="Attach image"
-            disabled={isGenerating}
+            disabled={isGenerating || isListening}
           >
             <Paperclip size={19} />
           </button>
@@ -134,9 +212,12 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
             ref={textareaRef}
             className="chat-textarea"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              baseTextRef.current = e.target.value;
+            }}
             onKeyDown={handleKeyDown}
-            placeholder="Message Groq AI... (Shift+Enter for newline)"
+            placeholder="Message ChatGPT Clone... (Shift+Enter for newline)"
             rows={1}
             disabled={isGenerating}
           />
@@ -146,12 +227,24 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
             <button
               type="button"
               className={`input-tool-btn ${isListening ? 'recording-pulse' : ''}`}
-              onClick={toggleListening}
-              title={isListening ? 'Stop listening' : 'Voice input (Dictation)'}
+              onClick={handleMicClick}
+              title={
+                isListening
+                  ? 'Stop listening'
+                  : isTranscribing
+                  ? 'Transcribing...'
+                  : 'Voice input (Microphone)'
+              }
               aria-label="Voice input"
-              disabled={isGenerating}
+              disabled={isGenerating || isTranscribing}
             >
-              {isListening ? <MicOff size={19} /> : <Mic size={19} />}
+              {isTranscribing ? (
+                <Loader2 size={19} className="spin-icon" />
+              ) : isListening ? (
+                <MicOff size={19} />
+              ) : (
+                <Mic size={19} />
+              )}
             </button>
           )}
 
@@ -182,7 +275,7 @@ export function ChatInput({ onSendMessage, onStopGenerating, isGenerating }) {
       </div>
 
       <div className="chat-disclaimer">
-        <span>Groq AI can make mistakes. Verify critical facts and code before production.</span>
+        <span>ChatGPT Clone can make mistakes. Verify critical facts and code before production.</span>
       </div>
     </div>
   );
