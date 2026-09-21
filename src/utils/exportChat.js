@@ -28,7 +28,7 @@ export function exportChatAsTxt(chat) {
   ];
 
   for (const msg of chat.messages) {
-    const sender = msg.role === 'user' ? 'USER' : 'ASSISTANT';
+    const sender = msg.role === 'user' ? 'USER' : 'KUSHAGRA';
     const timestamp = msg.timestamp ? ` [${new Date(msg.timestamp).toLocaleTimeString()}]` : '';
     lines.push(`${sender}${timestamp}:`);
     lines.push(msg.content);

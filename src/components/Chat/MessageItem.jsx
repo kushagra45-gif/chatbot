@@ -70,7 +70,7 @@ export function MessageItem({
         <div className="message-content-wrapper">
           {/* Header with Name & Timestamp */}
           <div className="message-header-meta">
-            <span className="message-author">{isUser ? 'You' : 'Groq'}</span>
+            <span className="message-author">{isUser ? 'User' : 'Kushagra'}</span>
             {message.timestamp && (
               <span className="message-timestamp" title={new Date(message.timestamp).toLocaleString()}>
                 {formatTimestamp(message.timestamp)}
